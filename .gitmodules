@@ -1,6 +1,3 @@
 [submodule "pandora"]
 	path = pandora
 	url = https://github.com/hex-g/pandora.git
-[submodule "ishigami"]
-	path = ishigami
-	url = https://github.com/hex-g/ishigami.git
