@@ -1,6 +1,5 @@
 package controller
 
-
 import hive.player.controller.PlayerController
 import hive.player.entity.Player
 import hive.player.entity.PlayerOptions
@@ -10,6 +9,7 @@ import org.mockito.Mock
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.MvcResult
+import org.springframework.test.web.servlet.ResultMatcher
 import org.springframework.test.web.servlet.setup.MockMvcBuilders
 import spock.lang.Shared
 import spock.lang.Specification
@@ -30,32 +30,110 @@ class PlayerControllerUnitTest extends Specification {
     @Shared Player player
     MockMvc mockMvc
     PlayerRepository playerRepository= Mock()
-    def setup(){
-        player=new Player(
-                1,
-                "alias",
-                "email",
-                "11985054202",
-                "String grande",
-                "21/04/1998",
-                "46358570855",
-                new PlayerOptions(
-                        "ouro",
-                        "titan do café",
-                        "on",
-                        "on",
-                        "on",
-                        "on"),
-                new PlayerSocial("git","linkedin","@twitter"))
+    def invalidProfileDataJson='{"invalid_key":"value"}'
+    def validProfileDataJson = '''
+{
+    "loginAlias": "custom2",
+    "email": "email",
+    "telnumber": "11985055502",
+    "flavorText": "String grande Lorem Ipsum dolor aquicumsitum amet",
+    "birthday": "21/04/1998",
+    "options": {
+        "laurel_wreath": "ouro",
+        "honorific": "titan do café",
+        "darkmode": "on",
+        "notify_hiveshare": "on",
+        "notify_hivecentral": "on",
+        "notify_disciplines": "on"
+    },
+    "social": {
+        "github": "git",
+        "linkedIn": "linkedin",
+        "twitter": "@twitter"
     }
-    def "Should add an user"(){
-        given:
-        mockMvc = MockMvcBuilders.standaloneSetup(new PlayerController()).build()
-        and:
-        playerRepository.findById(1) >> player
-        expect:
-//        mockMvc?.perform(get("$urlBase/create")).andDo(print())
-        mockMvc?.perform(get("$urlBase").header(AUTHENTICATED_USER_ID,1)).andDo(print())
-       // mockMvc?.perform(get("$urlBase")?.header(AUTHENTICATED_USER_ID,1))?.andExpect(status().isOk())
+}
+                        '''
+    def setup(){
+    }
+
+    def "Should GET profile data successfully"(){
+
+        given:"Correct header"
+        mockMvc = MockMvcBuilders.standaloneSetup(new PlayerController(playerRepository)).build()
+
+        expect:"Success when GET"
+        mockMvc.perform(get("$urlBase")
+                .header(AUTHENTICATED_USER_ID,val))
+                .andExpect(status().isOk())
+
+        where:"numbers or string as header value"
+        val | _
+        1   | _
+        "2" | _
+
+    }
+
+    def "Should POST profile data successfully"(){
+
+        given:"Correct header"
+        mockMvc = MockMvcBuilders.standaloneSetup(new PlayerController(playerRepository)).build()
+
+        expect:"Success when POST"
+        mockMvc.perform(post("$urlBase")
+                .header(AUTHENTICATED_USER_ID,val)
+                .contentType('application/json')
+                .content(validProfileDataJson))
+                .andExpect(status().isOk())
+
+        where:"numbers or string as header value"
+        val | _
+        1   | _
+        "2" | _
+    }
+    def "Should not accept GET profile data"(){
+
+        given:"Wrong header"
+        mockMvc = MockMvcBuilders.standaloneSetup(new PlayerController(playerRepository)).build()
+
+        when:"status NotAcceptable when GET"
+        def response=mockMvc.perform(get("$urlBase")
+                .header(key,1))
+                .andExpect(status().isNotAcceptable())
+        println response
+
+        then:
+//        response.andExpect(status().is(400))
+        thrown IllegalArgumentException
+
+        where:"Wrong or empty key"
+        key | _
+        ""  | _
+        " " | _
+        null| _
+
+    }
+
+    def "Should not accept POST profile data"(){
+
+        given:"Wrong header"
+        mockMvc = MockMvcBuilders.standaloneSetup(new PlayerController(playerRepository)).build()
+
+        when:"status NotAcceptable when POST"
+        def response=mockMvc.perform(post("$urlBase")
+                .header(key,1)
+                .contentType('application/json')
+                .content(validProfileDataJson))
+        println response
+
+        then:
+//        response.andExpect(status().is(400))
+        thrown IllegalArgumentException
+
+        where:"Wrong or empty key"
+        key | _
+        ""  | _
+        " " | _
+        null| _
+
     }
 }
