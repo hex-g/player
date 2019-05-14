@@ -2,7 +2,6 @@ package hive.player.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import org.hibernate.validator.constraints.br.CPF;
 
 import javax.persistence.*;
 
@@ -11,7 +10,10 @@ import javax.persistence.*;
 public class Player {
   @Id
   @JsonIgnore
-  private Integer id;
+  @GeneratedValue(strategy = GenerationType.IDENTITY)
+  private Integer playerId;
+  @JsonIgnore
+  private String autenticateUserId;
 
   @JsonProperty
   @Column(name = "login_alias", unique = true)
@@ -29,9 +31,6 @@ public class Player {
   @Column(name = "birthday")
   private String birthday;
 
-  @JsonProperty
-  @Column(name = "cpf")
-  private String cpf;
   @Embedded
   @JsonProperty
   @Column(name = "options")
@@ -44,32 +43,38 @@ public class Player {
   public Player() {
   }
 
-  public Integer getId() {//delete by no use?
-    return id;
+  public Integer getPlayerId() {
+    return playerId;
   }
 
-  public void setId(final Integer id) {
-    this.id = id;
+  public void setPlayerId(Integer playerId) {
+    this.playerId = playerId;
+  }
+
+  public String getAutenticateUserId() {
+    return autenticateUserId;
+  }
+
+  public void setAutenticateUserId(String autenticateUserId) {
+    this.autenticateUserId = autenticateUserId;
   }
 
   public Player(
-      final Integer id,
+      final String autenticateUserId,
       final String loginAlias,
       final String email,
-      final String telnumber,
+      final String telNumber,
       final String flavorText,
       final String birthday,
-      final String cpf,
       final PlayerOptions options,
       final PlayerSocial social
   ) {
-    this.id = id;
+    this.autenticateUserId = autenticateUserId;
     this.loginAlias = loginAlias;
     this.email = email;
-    this.telnumber = telnumber;
+    this.telnumber = telNumber;
     this.flavorText = flavorText;
     this.birthday = birthday;
-    this.cpf = cpf;
     this.options = options;
     this.social = social;
   }
