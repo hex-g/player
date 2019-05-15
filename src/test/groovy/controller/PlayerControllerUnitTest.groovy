@@ -61,10 +61,13 @@ class PlayerControllerUnitTest extends Specification {
         given:"Correct header"
         mockMvc = MockMvcBuilders.standaloneSetup(new PlayerController(playerRepository)).build()
 
-        expect:"Success when GET"
-        mockMvc.perform(get("$urlBase")
+        when:"Success when GET"
+        def response=mockMvc.perform(get("$urlBase")
                 .header(AUTHENTICATED_USER_ID,val))
-                .andExpect(status().isOk())
+                .andReturn()
+                .getResponse()
+        then:
+        response.getStatus()==200
 
         where:"numbers or string as header value"
         val | _
@@ -78,61 +81,99 @@ class PlayerControllerUnitTest extends Specification {
         given:"Correct header"
         mockMvc = MockMvcBuilders.standaloneSetup(new PlayerController(playerRepository)).build()
 
-        expect:"Success when POST"
-        mockMvc.perform(post("$urlBase")
+        when:"Success when POST"
+        def response=mockMvc.perform(post("$urlBase")
                 .header(AUTHENTICATED_USER_ID,val)
                 .contentType('application/json')
                 .content(validProfileDataJson))
-                .andExpect(status().isOk())
+                .andReturn().getResponse()
+        then:
+        response.getStatus()==200
 
         where:"numbers or string as header value"
         val | _
         1   | _
         "2" | _
-    }
-    def "Should not accept GET profile data"(){
 
-        given:"Wrong header"
+    }
+    def "Should AAAAA when GET"(){
+
+        given:
         mockMvc = MockMvcBuilders.standaloneSetup(new PlayerController(playerRepository)).build()
 
-        when:"status NotAcceptable when GET"
+        when:
         def response=mockMvc.perform(get("$urlBase")
-                .header(key,1))
-                .andExpect(status().isNotAcceptable())
-        println response
+                .header(key,val)).andReturn().getResponse()
+        println response.getStatus()
 
         then:
-//        response.andExpect(status().is(400))
-        thrown IllegalArgumentException
+        response.getStatus()==400
 
-        where:"Wrong or empty key"
-        key | _
-        ""  | _
-        " " | _
-        null| _
+        where:" wrong key on header with blank or filled value"
+        key                     | val        | _
+        "wrong key"             | "something"| _
+        "wrong_key"             | " "        | _
+
+    }
+    def "Should AAAAA when POST"(){
+
+        given:
+        mockMvc = MockMvcBuilders.standaloneSetup(new PlayerController(playerRepository)).build()
+
+        when:
+        def response=mockMvc.perform(get("$urlBase")
+                .header(key,val)).andReturn().getResponse()
+        println response.getStatus()
+
+        then:""
+        response.getStatus()==400
+
+        where:" wrong key on header with blank or filled value"
+        key                     | val        | _
+        "wrong key"             | "something"| _
+        "wrong_key"             | " "        | _
 
     }
 
-    def "Should not accept POST profile data"(){
+    def "Should give illegal argument GET profile data"(){
 
         given:"Wrong header"
         mockMvc = MockMvcBuilders.standaloneSetup(new PlayerController(playerRepository)).build()
 
-        when:"status NotAcceptable when POST"
-        def response=mockMvc.perform(post("$urlBase")
+        when:"GET with header key as #key"
+        mockMvc.perform(get("$urlBase")
+                .header(key,val)).andReturn()
+
+        then:
+        thrown IllegalArgumentException
+
+
+        where:"empty or null key"
+        key                     | val        | _
+        AUTHENTICATED_USER_ID   | null       | _
+        null                    | "something"| _
+        ""                      | "something"| _
+        ""                      | null       | _
+
+    }
+
+    def "Should give illegal argument POST profile data"(){
+
+        given:"Wrong header"
+        mockMvc = MockMvcBuilders.standaloneSetup(new PlayerController(playerRepository)).build()
+
+        when:"POST with header key as #key"
+        mockMvc.perform(post("$urlBase")
                 .header(key,1)
                 .contentType('application/json')
-                .content(validProfileDataJson))
-        println response
+                .content(validProfileDataJson)).andReturn()
 
         then:
-//        response.andExpect(status().is(400))
         thrown IllegalArgumentException
 
-        where:"Wrong or empty key"
+        where:"empty or null key"
         key | _
         ""  | _
-        " " | _
         null| _
 
     }
