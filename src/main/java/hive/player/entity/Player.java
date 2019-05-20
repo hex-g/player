@@ -2,8 +2,10 @@ package hive.player.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import hive.player.exception.BlankIdException;
 
 import javax.persistence.*;
+import javax.validation.constraints.NotNull;
 
 @Entity
 @Table(name = "tb_user_profile")
@@ -11,9 +13,10 @@ public class Player {
   @Id
   @JsonIgnore
   @GeneratedValue(strategy = GenerationType.IDENTITY)
+  //is some DBMS like Oracle you should change the strategy
   private Integer playerId;
   @JsonIgnore
-  private String autenticateUserId;
+  private String authenticatedUserId;
 
   @JsonProperty
   @Column(name = "login_alias", unique = true)
@@ -40,7 +43,7 @@ public class Player {
   @Column(name = "social")
   private PlayerSocial social;
 
-  public Player() {
+  private Player() {
   }
 
   public Integer getPlayerId() {
@@ -51,16 +54,19 @@ public class Player {
     this.playerId = playerId;
   }
 
-  public String getAutenticateUserId() {
-    return autenticateUserId;
+  public String getAuthenticatedUserId() {
+    return authenticatedUserId;
   }
 
-  public void setAutenticateUserId(String autenticateUserId) {
-    this.autenticateUserId = autenticateUserId;
+  public void setAuthenticatedUserId(@NotNull String authenticatedUserId) {
+    if(authenticatedUserId.isBlank()){
+      throw new BlankIdException();
+    }
+    this.authenticatedUserId = authenticatedUserId;
   }
 
   public Player(
-      final String autenticateUserId,
+      @NotNull final String authenticatedUserId,
       final String loginAlias,
       final String email,
       final String telNumber,
@@ -69,7 +75,7 @@ public class Player {
       final PlayerOptions options,
       final PlayerSocial social
   ) {
-    this.autenticateUserId = autenticateUserId;
+    setAuthenticatedUserId(authenticatedUserId);
     this.loginAlias = loginAlias;
     this.email = email;
     this.telnumber = telNumber;
@@ -77,5 +83,8 @@ public class Player {
     this.birthday = birthday;
     this.options = options;
     this.social = social;
+  }
+  public Player(@NotNull final String authenticatedUserId){
+    setAuthenticatedUserId(authenticatedUserId);
   }
 }
