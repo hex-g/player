@@ -43,14 +43,11 @@ public class Player {
   @Column(name = "social")
   private PlayerSocial social;
 
-  private Player() {
-  }
-
   public Integer getPlayerId() {
     return playerId;
   }
 
-  public void setPlayerId(Integer playerId) {
+  public void setPlayerId(final Integer playerId) {
     this.playerId = playerId;
   }
 
@@ -58,11 +55,14 @@ public class Player {
     return authenticatedUserId;
   }
 
-  public void setAuthenticatedUserId(@NotNull String authenticatedUserId) {
+  public void setAuthenticatedUserId(@NotNull final String authenticatedUserId) {
     if(authenticatedUserId.isBlank()){
       throw new BlankIdException();
     }
     this.authenticatedUserId = authenticatedUserId;
+  }
+
+  private Player() {
   }
 
   public Player(
