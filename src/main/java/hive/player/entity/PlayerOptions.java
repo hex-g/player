@@ -6,18 +6,18 @@ import javax.persistence.Embeddable;
 public class PlayerOptions {
   public String laurel_wreath;
   public String honorific;
-  public String darkmode;
-  public String notify_hiveshare;
-  public String notify_hivecentral;
-  public String notify_disciplines;
+  public Boolean darkmode;
+  public Boolean notify_hiveshare;
+  public Boolean notify_hivecentral;
+  public Boolean notify_disciplines;
 
   public PlayerOptions(
       final String laurel_wreath,
       final String honorific,
-      final String darkmode,
-      final String notify_hiveshare,
-      final String notify_hivecentral,
-      final String notify_disciplines
+      final Boolean darkmode,
+      final Boolean notify_hiveshare,
+      final Boolean notify_hivecentral,
+      final Boolean notify_disciplines
   ) {
     this.laurel_wreath = laurel_wreath;
     this.honorific = honorific;
