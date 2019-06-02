@@ -4,7 +4,6 @@ package hive.player.controller
 import hive.player.entity.Player
 import hive.player.entity.PlayerOptions
 import hive.player.repository.PlayerRepository
-import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.setup.MockMvcBuilders
 import spock.lang.Shared
@@ -21,26 +20,26 @@ class PlayerControllerUnitTest extends Specification {
     PlayerRepository playerRepository = Mock()
 
     def validProfileDataJson = '''
-{
-    "loginAlias": "custom2",
-    "email": "email",
-    "telnumber": "11985055502",
-    "flavorText": "String grande Lorem Ipsum dolor aquicumsitum amet",
-    "birthday": "21/04/1998",
-    "options": {
-        "laurel_wreath": "ouro",
-        "honorific": "titan do café",
-        "darkmode": "on",
-        "notify_hiveshare": "on",
-        "notify_hivecentral": "on",
-        "notify_disciplines": "on"
-    },
-    "social": {
-        "github": "git",
-        "linkedIn": "linkedin",
-        "twitter": "@twitter"
+    {
+        "loginAlias": "custom2",
+        "email": "email",
+        "telnumber": "11985055502",
+        "flavorText": "String grande Lorem Ipsum dolor aquicumsitum amet",
+        "birthday": "21/04/1998",
+        "options": {
+            "laurel_wreath": "ouro",
+            "honorific": "titan do café",
+            "darkmode": "true",
+            "notify_hiveshare": "true",
+            "notify_hivecentral": "true",
+            "notify_disciplines": "true"
+        },
+        "social": {
+            "github": "git",
+            "linkedIn": "linkedin",
+            "twitter": "@twitter"
+        }
     }
-}
                         '''
     def setup(){
         createAnPlayer()
@@ -51,10 +50,10 @@ class PlayerControllerUnitTest extends Specification {
         def options = new PlayerOptions(
                 "gold",
                 "Coffee Titan",
-                "on",
-                "on",
-                "on",
-                "on")
+                true,
+                true,
+                true,
+                true)
         player = new Player(
                 "CompletePlayer",
                 "alias",
@@ -72,7 +71,8 @@ class PlayerControllerUnitTest extends Specification {
         def invalidProfileDataJson='{"playerId":10}'
 
         when:"perform POST"
-        def response=mockMvc.perform(post("$urlBase")
+        def response =
+                mockMvc.perform(post("$urlBase")
                 .header(AUTHENTICATED_USER_ID,1)
                 .contentType('application/json')
                 .content(invalidProfileDataJson))
@@ -85,119 +85,127 @@ class PlayerControllerUnitTest extends Specification {
 
     }
 
-    def "Should GET profile data successfully"(){
+    def '''
+        Given profile options with valid values in boolean fields,
+        when perform POST,
+        then HttpResponse as BAD REQUEST.
+        '''(){
 
-        given:"Correct header key"
+        given:
+        def validProfileOptionsJson= $/
+        {
+            "options": {
+                "laurel_wreath": "ouro",
+                "honorific": "titan do café",
+                "darkmode": $validBooleanValues,
+                "notify_hiveshare": $validBooleanValues,
+                "notify_hivecentral": $validBooleanValues,
+                "notify_disciplines": $validBooleanValues
+            }
+        }
+        /$
+
+        when:
+        def response =
+                mockMvc.perform(post("$urlBase")
+                        .header(AUTHENTICATED_USER_ID,1)
+                        .contentType('application/json')
+                        .content(validProfileOptionsJson))
+                        .andReturn()
+                        .getResponse()
+
+        then:
+        response.getStatus()==200
+
+        where:
+        validBooleanValues << ['\"True\"', '\"true\"', true, 1, '\"False\"', '\"false\"', false, 0]
+    }
+
+    def '''
+        Given profile options with string values in boolean fields,
+        when perform POST,
+        then HttpResponse as BAD REQUEST.
+        '''(){
+
+        given:
+        def invalidProfileOptionsJson= $/
+        {
+            "options": {
+                "laurel_wreath": "ouro",
+                "honorific": "titan do café",
+                "darkmode": $testedStringValues,
+                "notify_hiveshare": $testedStringValues,
+                "notify_hivecentral": $testedStringValues,
+                "notify_disciplines": $testedStringValues
+            }
+        }
+        /$
+
+        when:
+        def response =
+                mockMvc.perform(post("$urlBase")
+                        .header(AUTHENTICATED_USER_ID,1)
+                        .contentType('application/json')
+                        .content(invalidProfileOptionsJson))
+                        .andReturn()
+                        .getResponse()
+        then:
+        response.getStatus() == 400
+
+        where:
+        testedStringValues << ['\"TrUe\"', '\"FALSE\"', '\"Something\"']
+    }
+
+    def '''
+        Given correct header key,
+        when perform GET,
+        then HttpResponse as OK.
+        Where header value accepts numbers or string to query.
+        '''(){
+
+        given:
         def headerKey=AUTHENTICATED_USER_ID
 
-        when:"perform GET"
+        when:
         def response=mockMvc.perform(get("$urlBase")
                 .header(headerKey,val))
                 .andReturn()
                 .getResponse()
 
-        then:"HttpResponse as OK"
+        then:
         response.getStatus()==200
 
-        where:"numbers or string as header value"
+        where:
         val | _
         1   | _
         "2" | _
 
     }
 
-    def "Should POST profile data successfully"(){
+    def '''
+        Given correct header key,
+        when perform POST with valid json,
+        then HttpResponse as OK.
+        Where header value accepts numbers or string to query.
+        '''(){
 
-        given:"Correct header key"
+        given:
         def headerKey=AUTHENTICATED_USER_ID
 
-        when:"perform POST with valid json"
+        when:
         def response=mockMvc.perform(post("$urlBase")
                 .header(headerKey,val)
                 .contentType('application/json')
                 .content(validProfileDataJson))
                 .andReturn().getResponse()
 
-        then:"HttpResponse as OK"
+        then:
         response.getStatus()==200
 
-        where:"numbers or string as header value"
+        where:
         val | _
         1   | _
         "2" | _
 
     }
-
-    def "Should return BAD REQUEST when GET with wrong Header"(){
-
-        given:"wrong header key"
-        def headerKey="wrong_key"
-
-        and:"not null header value"
-        def headerValue=" "
-
-        when:"perform GET"
-        def response=mockMvc.perform(get("$urlBase")
-                .header(headerKey,headerValue))
-                .andReturn()
-                .getResponse()
-
-        then:"HttpResponse as BAD REQUEST"
-        response.getStatus()==400
-    }
-
-    def "Should return BAD REQUEST when POST with wrong Header"(){
-
-        given:"wrong header key"
-        def headerKey="wrong_key"
-
-        and:"not null header value"
-        def headerValue=" "
-
-        when:"perform POST"
-        def response=mockMvc.perform(get("$urlBase")
-                .header(headerKey,headerValue))
-                .andReturn()
-                .getResponse()
-
-        then:"HttpResponse as BAD REQUEST"
-        response.getStatus()==400
-    }
-
-    def "Should give illegal argument exception when GET profile data"(){
-
-        when:"perform GET"
-        def response=mockMvc.perform(get("$urlBase")
-                .header(key,val)).andReturn().getResponse()
-        println response.status+key+val
-
-        then:
-        thrown IllegalArgumentException
-
-        where:"Header key or Header value is empty"
-        key                     | val        | _
-        AUTHENTICATED_USER_ID   | null       | _
-        ""                      | "something"| _
-        null                    | "something"| _
-    }
-
-    def "Should give illegal argument exception POST profile data"(){
-
-        when:"perform POST with an valid profile data json"
-        mockMvc.perform(post("$urlBase")
-                .header(key,val)
-                .contentType('application/json')
-                .content(validProfileDataJson)).andReturn()
-
-        then:
-        thrown IllegalArgumentException
-
-        where:"Header key or Header value is empty"
-        key                     | val        | _
-        AUTHENTICATED_USER_ID   | null       | _
-        ""                      | "something"| _
-        null                    | "something"| _
-
-    }
-
 }

@@ -10,7 +10,6 @@ import groovyx.net.http.RESTClient
 
 import static hive.pandora.constant.HiveInternalHeaders.*
 
-/*Integration test. only work with the system up*/
 class PlayerControllerIntegrationTest extends Specification {
 
     @Shared
@@ -25,96 +24,99 @@ class PlayerControllerIntegrationTest extends Specification {
 
     def urlBase = 'http://localhost:9600/'
 
-    def validProfileDataJson = '''
-{
-    "loginAlias": "Integration_Test",
-    "email": "integration@test.com",
-    "telnumber": "11987654321",
-    "flavorText": "Large string Lorem Ipsum dolor aquicumsitum amet",
-    "birthday": "21/04/1998",
-    "options": {
-        "laurel_wreath": "CHALLENGER",
-        "honorific": "Coffee Titan",
-        "darkmode": "on",
-        "notify_hiveshare": "on",
-        "notify_hivecentral": "on",
-        "notify_disciplines": "on"
-    },
-    "social": {
-        "github": "git",
-        "linkedIn": "linkedin",
-        "twitter": "@twitter"
-    }
-}
-                        '''
+    def validProfileDataJson = $/
+        {
+            "loginAlias": "Integration_Test",
+            "email": "integration@test.com",
+            "telnumber": "11987654321",
+            "flavorText": "Large string Lorem Ipsum dolor aquicumsitum amet",
+            "birthday": "21/04/1998",
+            "options": {
+                "laurel_wreath": "CHALLENGER",
+                "honorific": "Coffee Titan",
+                "darkmode": "true",
+                "notify_hiveshare": "true",
+                "notify_hivecentral": "true",
+                "notify_disciplines": "true"
+            },
+            "social": {
+                "github": "git",
+                "linkedIn": "linkedin",
+                "twitter": "@twitter"
+            }
+        }
+    /$
 
     def cleanupSpec(){
         //should have some delete method in the original application
     }
 
-    def 'Should GET user successfully'() {
+    def 'Perform GET with correct header and expect HttpStatus OK'() {
 
-        given: 'perform GET with correct header'
+        given:
         def response = client.get(
                 headers: ["$AUTHENTICATED_USER_ID": "${integrationTestHeaderValue}"])
 
-        expect: 'HttpStatus OK'
+        expect:
         response.status == 200
     }
 
-    def 'Should POST an user successfully'() {
+    def 'Perform POST with valid Json and expect HttpStatus OK'() {
 
-        given: 'perform POST with valid Json'
+        given:
         def response = client.post(
                 headers: ["$AUTHENTICATED_USER_ID": "${integrationTestHeaderValue}"],
                 body: "$validProfileDataJson")
 
-        expect: 'HttpStatus OK'
+        expect:
         response.status == 200
     }
 
-    def 'Should return BAD REQUEST when GET with wrong Header key'() {
+    def 'Perform GET with wrong Header key and expect HttpStatus BAD REQUEST'() {
 
-        given: 'perform GET with wrong Header key'
+        given:
         def response = client.get(
                 headers: ['wrong_key': "${integrationTestHeaderValue}"])
 
-        expect: 'HttpStatus BAD REQUEST'
+        expect:
         response.status == 400
     }
 
-    def 'Should return BAD REQUEST when POST with wrong Header key'() {
+    def 'Perform POST with wrong Header key and expect HttpStatus BAD REQUEST'() {
 
-        given: 'perform POST with wrong Header key'
+        given:
         def response = client.post(
                 headers: ["wrong_key": '1'])
 
-        expect: 'HttpStatus BAD REQUEST'
+        expect:
         response.status == 400
     }
 
-    def 'Should return BAD REQUEST when POST with an empty body request'() {
+    def 'Perform POST with empty body request and expect HttpStatus BAD REQUEST'() {
 
-        given: 'perform POST with empty body request'
+        given:
         def response = client.post(
                 headers: ["$AUTHENTICATED_USER_ID": "${integrationTestHeaderValue}"])
 
-        expect: 'HttpStatus BAD REQUEST'
+        expect:
         response.status == 400
     }
 
-    def 'Should return BAD REQUEST when POST a body request with PlayerId'() {
+    def '''
+        Given Json containing playerId,
+        when user profile data is inserted,
+        then HttpStatus BAD REQUEST
+        '''() {
 
-        given: 'Json containing playerId as Header key'
+        given:
         def invalidProfileDataJson='{"playerId": 10}'
 
-        when: 'When user profile data is inserted'
+        when:
         def response = client.post(
                                     headers: ["$AUTHENTICATED_USER_ID": "${integrationTestHeaderValue}"],
                                     body: ["$invalidProfileDataJson"])
 
-
-        then: 'HttpStatus ok request is received'
+        then:
         response.status == 400
     }
 
