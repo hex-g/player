@@ -2,7 +2,6 @@ package hive.player.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import hive.player.exception.BlankIdException;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
@@ -11,7 +10,7 @@ import javax.validation.constraints.NotNull;
 @Table(name = "tb_user_profile")
 public class Player {
   @Id
-  @JsonIgnore
+  @JsonProperty
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   //is some DBMS like Oracle you should change the strategy
   private Integer playerId;
@@ -56,9 +55,6 @@ public class Player {
   }
 
   public void setAuthenticatedUserId(@NotNull final String authenticatedUserId) {
-    if(authenticatedUserId.isBlank()){
-      throw new BlankIdException();
-    }
     this.authenticatedUserId = authenticatedUserId;
   }
 
