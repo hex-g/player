@@ -18,7 +18,7 @@
 > URL: `http://localhost:9600/`
 
 #### ![#c5f015](https://placehold.it/15/c5f015/000000?text=+) `GET`
-If an request profile data does not exist then a new one be created. 
+If an request profile data does not exist then a new one will be created. 
 * `header`
     * *key*: `authenticated-user-id`
     * *value*: [string]
@@ -30,7 +30,7 @@ Inserts a new profile data or updates an existent.
     * *value*: [string]
 * `body JSON`
     * *value*: 
-    ```
+    ```javascript
     {
             "loginAlias": string,
             "email": string,
