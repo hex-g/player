@@ -1,0 +1,3 @@
+[submodule "pandora"]
+	path = pandora
+	url = https://github.com/hex-g/pandora.git
